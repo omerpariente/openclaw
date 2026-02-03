@@ -5,8 +5,8 @@ on:
     branches:
       - main
   schedule:
-    # Check for updates every 6 hours
-    - cron: "0 */6 * * *"
+    # Check for updates daily at midnight UTC
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:
@@ -46,7 +46,13 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     needs: sync
-    if: always() && (needs.sync.outputs.updated == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    # Deploy on: push (code changes), manual trigger, or scheduled if updates found
+    if: |
+      always() && (
+        github.event_name == 'push' ||
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'schedule' && needs.sync.outputs.updated == 'true')
+      )
     concurrency: deploy-group
     steps:
       - uses: actions/checkout@v4
