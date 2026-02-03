@@ -15,7 +15,8 @@ OPENCLAW_STATE_DIR = "/data"
 NODE_OPTIONS = "--max-old-space-size=1536"
 
 [processes]
-app = "node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan"
+# Fix permissions on startup (volume may have wrong perms after deploy), then start gateway
+app = "sh -c 'chmod 700 /data 2>/dev/null; chmod 600 /data/openclaw.json 2>/dev/null; find /data/agents -name auth-profiles.json -exec chmod 600 {} \\; 2>/dev/null; exec node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan'"
 
 [http_service]
 internal_port = 3000
