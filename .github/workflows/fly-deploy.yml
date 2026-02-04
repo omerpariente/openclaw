@@ -34,7 +34,11 @@ jobs:
 
           if [ "$LOCAL" != "$UPSTREAM" ]; then
             echo "Updates found, merging..."
-            git merge upstream/main --no-edit
+            # Merge but exclude workflow changes (GITHUB_TOKEN can't push workflow files)
+            git merge upstream/main --no-edit --no-commit || true
+            git checkout HEAD -- .github/workflows/ 2>/dev/null || true
+            git add -A
+            git diff --cached --quiet || git commit -m "Sync from upstream (excluding workflows)"
             git push origin main
             echo "updated=true" >> $GITHUB_OUTPUT
           else
